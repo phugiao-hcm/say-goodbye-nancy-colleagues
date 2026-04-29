@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lời Tạm Biệt</title>
+  <style>
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:#000; color:#fff; }
+
+    .story-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .slide.active { opacity:1; }
+
+    .slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.6);
+    }
+
+    .text {
+      position: absolute;
+      bottom: 20%;
+      width: 100%;
+      text-align: center;
+      font-size: 36px;
+      font-weight: 600;
+      padding: 0 20px;
+      min-height: 80px;
+      line-height: 1.4;
+      text-shadow: 0 4px 15px rgba(0,0,0,0.7);
+    }
+
+    .cursor {
+      display:inline-block;
+      width:2px;
+      background:#fff;
+      margin-left:5px;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%,50%,100%{opacity:1}
+      25%,75%{opacity:0}
+    }
+
+    .progress {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .bar {
+      flex:1;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .bar span {
+      display:block;
+      height:100%;
+      width:0%;
+      background:#fff;
+    }
+
+    .tap-zone {
+      position:absolute;
+      top:0;
+      width:50%;
+      height:100%;
+      z-index:10;
+    }
+
+    .left { left:0; }
+    .right { right:0; }
+
+  
+
+    /* Responsive Mobile */
+    @media (max-width: 768px) {
+      .text {
+        font-size: 26px;
+        bottom: 18%;
+        padding: 0 16px;
+      }
+      .progress { top: 8px; left: 8px; right: 8px; }
+      .bar { height: 3px; }
+    }
+
+    @media (max-width: 480px) {
+      .text {
+        font-size: 22px;
+        bottom: 16%;
+        line-height: 1.5;
+      }
+      .cursor { width: 2px; }
+    }
+
+    /* Improve touch areas like TikTok */
+    .tap-zone { width: 50%; }
+    @media (max-width: 768px) {
+      .tap-zone { width: 50%; }
+    }
+
+    /* Safe area for iPhone notch */
+    .story-container {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Better text readability on small screens */
+    .text {
+      max-width: 90%;
+      margin: 0 auto;
+    }
+
+    </style>
+</head>
+<body>
+
+<div class="story-container">
+
+  <div class="progress" id="progress"></div>
+
+  <div class="slide active" data-text="Cảm ơn mọi người vì đã đồng hành cùng em 💼">
+    <img src="https://picsum.photos/800/1200?random=1">
+    <div class="text"></div>
+  </div>
+
+  <div class="slide" data-text="Những bữa trưa và tiếng cười em sẽ luôn nhớ 🍱">
+    <img src="https://picsum.photos/800/1200?random=2">
+    <div class="text"></div>
+  </div>
+
+  <div class="slide" data-text="Có áp lực, nhưng cũng đầy kỷ niệm đáng giá 💪">
+    <img src="https://picsum.photos/800/1200?random=3">
+    <div class="text"></div>
+  </div>
+
+  <div class="slide" data-text="Nơi này đã giúp em trưởng thành hơn rất nhiều 🌱">
+    <img src="https://picsum.photos/800/1200?random=4">
+    <div class="text"></div>
+  </div>
+
+  <div class="slide" data-text="Tạm biệt… nhưng không phải là kết thúc ❤️">
+    <img src="https://picsum.photos/800/1200?random=5">
+    <div class="text"></div>
+  </div>
+
+  <div class="tap-zone left" onclick="prevSlide()"></div>
+  <div class="tap-zone right" onclick="nextSlide()"></div>
+
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const progress = document.getElementById('progress');
+  let current = 0;
+  let duration = 5000;
+  let timer;
+
+  slides.forEach(() => {
+    const bar = document.createElement('div');
+    bar.classList.add('bar');
+    const span = document.createElement('span');
+    bar.appendChild(span);
+    progress.appendChild(bar);
+  });
+
+  const bars = document.querySelectorAll('.bar span');
+
+  function typeWriter(el, text, speed = 40) {
+    el.innerHTML = '';
+    let i = 0;
+    const cursor = document.createElement('span');
+    cursor.classList.add('cursor');
+    el.appendChild(cursor);
+
+    function typing() {
+      if (i < text.length) {
+        cursor.insertAdjacentText('beforebegin', text.charAt(i));
+        i++;
+        setTimeout(typing, speed);
+      }
+    }
+
+    typing();
+  }
+
+  function showSlide(index) {
+    slides.forEach(s => s.classList.remove('active'));
+    slides[index].classList.add('active');
+
+    const textEl = slides[index].querySelector('.text');
+    const text = slides[index].getAttribute('data-text');
+    typeWriter(textEl, text);
+
+    animateBar(index);
+  }
+
+  function animateBar(index) {
+    bars.forEach((b,i)=>{
+      b.style.transition = 'none';
+      b.style.width = i < index ? '100%' : '0%';
+    });
+
+    setTimeout(()=>{
+      bars[index].style.transition = duration + 'ms linear';
+      bars[index].style.width = '100%';
+    },50);
+  }
+
+  function nextSlide() {
+    clearTimeout(timer);
+    if(current < slides.length -1){
+      current++;
+      showSlide(current);
+      autoPlay();
+    }
+  }
+
+  function prevSlide() {
+    clearTimeout(timer);
+    if(current > 0){
+      current--;
+      showSlide(current);
+      autoPlay();
+    }
+  }
+
+  function autoPlay(){
+    timer = setTimeout(()=>{
+      if(current < slides.length -1){
+        current++;
+        showSlide(current);
+        autoPlay();
+      }
+    }, duration);
+  }
+
+  showSlide(current);
+  autoPlay();
+</script>
+
+</body>
+</html>
