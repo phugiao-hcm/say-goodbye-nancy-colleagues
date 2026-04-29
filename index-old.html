@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lời Tạm Biệt</title>
+  <style>
+    body { margin:0; font-family:'Segoe UI',sans-serif; background:#000; color:#fff; }
+
+    .story-container { position: relative; width: 100%; height: 100vh; overflow: hidden; }
+
+    .slide { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; transition: opacity 0.5s ease; }
+    .slide.active { opacity:1; }
+
+    .slide img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
+
+    .text {
+      position: absolute;
+      bottom: 20%;
+      width: 100%;
+      text-align: center;
+      font-size: 36px;
+      font-weight: 600;
+      padding: 0 20px;
+      min-height: 80px;
+      line-height: 1.4;
+      text-shadow: 0 4px 15px rgba(0,0,0,0.7);
+    }
+
+    .cursor { display:inline-block; width:2px; background:#fff; margin-left:5px; animation: blink 1s infinite; }
+    @keyframes blink {0%,50%,100%{opacity:1}25%,75%{opacity:0}}
+
+    .progress { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 5px; }
+    .bar { flex:1; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
+    .bar span { display:block; height:100%; width:0%; background:#fff; }
+
+    .tap-zone { position:absolute; top:0; width:50%; height:100%; z-index:10; }
+    .left { left:0; }
+    .right { right:0; }
+
+    @media (max-width:768px){ .text{font-size:26px} }
+    @media (max-width:480px){ .text{font-size:22px} }
+  </style>
+</head>
+<body>
+
+<div class="story-container" id="story"></div>
+
+<script>
+  // 👉 CHỈNH 14 HÌNH + NỘI DUNG TẠI ĐÂY
+  const data = [
+    {img:'images/87.jpg', text:'Cảm ơn mọi người vì đã đồng hành cùng em 💼'},
+    {img:'images/88.jpg', text:'Những bữa trưa và tiếng cười em sẽ luôn nhớ 🍱'},
+    {img:'images/89.jpg', text:'Có áp lực, nhưng cũng đầy kỷ niệm đáng giá 💪'},
+    {img:'images/90.jpg', text:'Nơi này đã giúp em trưởng thành hơn 🌱'},
+    {img:'images/91.jpg', text:'Mỗi ngày đều là một kỷ niệm đẹp'},
+    {img:'images/92.jpg', text:'Cảm ơn Síp vì đã luôn giúp đỡ em'},
+    {img:'images/93.jpg', text:'Những lần teamwork đáng nhớ'},
+    {img:'images/94.jpg', text:'Áp lực nhưng vui vì có mọi người'},
+    {img:'images/95.jpg', text:'Những khoảnh khắc không thể quên'},
+    {img:'images/96.jpg', text:'Cảm ơn vì tất cả ❤️'},
+    {img:'images/97.jpg', text:'Hy vọng sẽ còn gặp lại'},
+    {img:'images/98.jpg', text:'Chúc mọi người luôn thành công'},
+    {img:'images/99.jpg', text:'Giữ mãi những ký ức đẹp'},
+    {img:'images/100.jpg', text:'Tạm biệt… nhưng không phải kết thúc ❤️'}
+  ];
+
+  const container = document.getElementById('story');
+
+  // render slides
+  data.forEach((item, index) => {
+    const slide = document.createElement('div');
+    slide.className = 'slide' + (index===0?' active':'');
+    slide.innerHTML = `
+      <img src="${item.img}">
+      <div class="text"></div>
+    `;
+    slide.setAttribute('data-text', item.text);
+    container.appendChild(slide);
+  });
+
+  // progress
+  const progress = document.createElement('div');
+  progress.className = 'progress';
+  container.appendChild(progress);
+
+  data.forEach(()=>{
+    const bar = document.createElement('div');
+    bar.className='bar';
+    bar.innerHTML='<span></span>';
+    progress.appendChild(bar);
+  });
+
+  // tap zones
+  const left = document.createElement('div');
+  left.className='tap-zone left';
+  left.onclick = ()=>prevSlide();
+  const right = document.createElement('div');
+  right.className='tap-zone right';
+  right.onclick = ()=>nextSlide();
+  container.appendChild(left);
+  container.appendChild(right);
+
+  const slides = document.querySelectorAll('.slide');
+  const bars = document.querySelectorAll('.bar span');
+
+  let current = 0;
+  let duration = 5000;
+  let timer;
+
+  function typeWriter(el, text, speed=40){
+    el.innerHTML='';
+    let i=0;
+    const cursor=document.createElement('span');
+    cursor.className='cursor';
+    el.appendChild(cursor);
+    function typing(){
+      if(i<text.length){
+        cursor.insertAdjacentText('beforebegin', text.charAt(i));
+        i++;
+        setTimeout(typing,speed);
+      }
+    }
+    typing();
+  }
+
+  function showSlide(index){
+    slides.forEach(s=>s.classList.remove('active'));
+    slides[index].classList.add('active');
+    const textEl = slides[index].querySelector('.text');
+    typeWriter(textEl, slides[index].dataset.text);
+
+    bars.forEach((b,i)=>{
+      b.style.transition='none';
+      b.style.width = i<index?'100%':'0%';
+    });
+
+    setTimeout(()=>{
+      bars[index].style.transition = duration+'ms linear';
+      bars[index].style.width='100%';
+    },50);
+  }
+
+  function nextSlide(){ clearTimeout(timer); if(current<data.length-1){current++; showSlide(current); autoPlay();} }
+  function prevSlide(){ clearTimeout(timer); if(current>0){current--; showSlide(current); autoPlay();} }
+
+  function autoPlay(){
+    timer = setTimeout(()=>{
+      if(current<data.length-1){ current++; showSlide(current); autoPlay(); }
+    }, duration);
+  }
+
+  showSlide(current);
+  autoPlay();
+</script>
+
+</body>
+</html>
