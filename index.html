@@ -217,7 +217,7 @@ const data = [
   {img:'images/90.jpg', text:'Bái bai'},
   {img:'images/91.jpg', text:'Góc làm việc của Nancy'},
   {img:'images/92.jpg', text:'Mừng sếp thăng chức'},
-  {img:'images/93.jpg', text:'1 2 3 dzô tiệc thôi nào'},
+  {img:'images/93.jpg', text:'Được đi ăn Kichi Kichi nè'},
   {img:'images/94.jpg', text:'1 2 3 dzô nè'},
   {img:'images/95.jpg', text:'Trao đổi quà noel🎁'},
   {img:'images/96.jpg', text:'Nancy cảm ơn mn nhó😘'},
@@ -242,23 +242,29 @@ data.forEach((item,i)=>{
     <div class="number">${i+1}</div>
   `;
 
-  gift.onclick=()=>{
-    if(gift.classList.contains('open')) return;
+gift.onclick=()=>{
 
-    gift.classList.add('shake');
+  // luôn cho mở lại
+  gift.classList.remove('open');
 
-    setTimeout(()=>{
-      gift.classList.remove('shake');
-      gift.classList.add('open');
+  gift.classList.add('shake');
 
-      createConfetti(gift);
+  setTimeout(()=>{
+    gift.classList.remove('shake');
+    gift.classList.add('open');
 
+    createConfetti(gift);
+
+    // chỉ tăng progress lần đầu
+    if(!gift.dataset.opened){
+      gift.dataset.opened = "true";
       opened++;
       updateProgress();
+    }
 
-      setTimeout(()=>openModal(item),400);
-    },400);
-  };
+    setTimeout(()=>openModal(item),400);
+  },400);
+};
 
   grid.appendChild(gift);
 });
